@@ -125,7 +125,7 @@ for _, v in ipairs({
     r = { row = 3, col = 10, offset = 6, input = 'e:d:c', start_char = 1, end_char = 9 },
     match_across_three = { pat = 'E:D:C', inp = 'e:d:c' },
     no_match           = { pat = 'X:Y',   inp = 'x:y' },
-    second_seg_wrong   = { pat = 'E:Z',   inp = 'e:z' },
+    second_seg_wrong   = { pat = 'E:Z',   inp = 'e:z',   items = { { label = 'Expenses:aZ', kind = 9 } } },
     third_seg_wrong    = { pat = 'E:D:X', inp = 'e:d:x' },
     pattern_too_deep   = { pat = 'E:F:C', inp = 'e:f:c' },
     first_seg_wrong    = { pat = 'X:D:C', inp = 'x:d:c' },
@@ -144,7 +144,7 @@ for _, v in ipairs({
     r = { row = 3, col = 14, offset = 10, input = 'р:п:п', start_char = 2, end_char = 13 },
     match_across_three = { pat = 'р:п:п', inp = 'р:п:п' },
     no_match           = { pat = 'х:й',   inp = 'х:й' },
-    second_seg_wrong   = { pat = 'р:з',   inp = 'р:з' },
+    second_seg_wrong   = { pat = 'а:б',   inp = 'а:б',   items = { { label = 'активы:сбережения:вклад:отп', kind = 9 } } },
     third_seg_wrong    = { pat = 'р:п:х', inp = 'р:п:х' },
     pattern_too_deep   = { pat = 'р:е:з', inp = 'р:е:з' },
     first_seg_wrong    = { pat = 'ф:п:п', inp = 'ф:п:п' },
@@ -190,7 +190,8 @@ for _, v in ipairs({
 
     it('does not match second seg mismatch (E:Z vs Expenses:aZ)', function()
       local prefixes, _ = util.build_pattern(v.second_seg_wrong.pat)
-      local result = util.filter_prefix_mode(items, prefixes, v.second_seg_wrong.inp, 1, 1, 1)
+      local test_items = v.second_seg_wrong.items or items
+      local result = util.filter_prefix_mode(test_items, prefixes, v.second_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
