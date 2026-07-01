@@ -150,7 +150,10 @@ describe('filter_prefix_mode', function()
 
   it('does not match second segment mismatch (E:Z vs Expenses:aZ)', function()
     local prefixes, _ = util.build_pattern('E:Z')
-    local result = util.filter_prefix_mode(items, prefixes, 'e:z', 1, 1, 1)
+    local az_items = {
+      { label = 'Expenses:aZ', kind = 9 },
+    }
+    local result = util.filter_prefix_mode(az_items, prefixes, 'e:z', 1, 1, 1)
     assert.same({}, result)
   end)
 
