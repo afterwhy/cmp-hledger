@@ -17,22 +17,34 @@ function M.startswith(str, prefix)
 end
 
 function M.build_pattern(input)
-  local prefixes = M.split(input, ':')
-  local pattern = ''
-  for i, prefix in ipairs(prefixes) do
-    if i == 1 then
-      pattern = string.format('%s[%%w%%-]*', prefix:lower())
-    else
-      pattern = string.format('%s:%s[%%w%%-]*', pattern, prefix:lower())
-    end
+  local prefixes = {}
+  for _, p in ipairs(M.split(input, ':')) do
+    prefixes[#prefixes + 1] = p:lower()
   end
-  return pattern, #prefixes > 1 and pattern ~= ''
+  return prefixes, #prefixes > 1
 end
 
-function M.filter_prefix_mode(items, pattern, input, cursor_row, cursor_col, offset)
+function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, offset)
   local result = {}
   for _, item in ipairs(items) do
-    if string.match(item.label:lower(), pattern) then
+    local label_segments = M.split(item.label:lower(), ':')
+    local seg_idx = 1
+    local all_match = true
+    for _, prefix in ipairs(prefixes) do
+      local found = false
+      for j = seg_idx, #label_segments do
+        if M.startswith(label_segments[j], prefix) then
+          seg_idx = j + 1
+          found = true
+          break
+        end
+      end
+      if not found then
+        all_match = false
+        break
+      end
+    end
+    if all_match then
       table.insert(result, {
         word = item.label,
         label = item.label,
