@@ -123,18 +123,16 @@ for _, v in ipairs({
       { label = 'Income:Salary', kind = 9 },
     },
     r = { row = 3, col = 10, offset = 6, input = 'e:d:c', start_char = 1, end_char = 9 },
-    c = {
-      three     = { pat = 'E:D:C', inp = 'e:d:c' },
-      empty     = { pat = 'X:Y', inp = 'x:y' },
-      sec_mis   = { pat = 'E:Z', inp = 'e:z' },
-      third_mis = { pat = 'E:D:X', inp = 'e:d:x' },
-      deep      = { pat = 'E:F:C', inp = 'e:f:c' },
-      first_mis = { pat = 'X:D:C', inp = 'x:d:c' },
-      sal_mis   = { pat = 'I:E', inp = 'i:e' },
-      ea        = { pat = 'E:a', inp = 'e:a', label = 'Expenses:aZ' },
-      ed        = { pat = 'E:D', inp = 'e:d' },
-      single    = { pat = 'E', inp = 'e' },
-    },
+    match_across_three = { pat = 'E:D:C', inp = 'e:d:c' },
+    no_match           = { pat = 'X:Y',   inp = 'x:y' },
+    second_seg_wrong   = { pat = 'E:Z',   inp = 'e:z' },
+    third_seg_wrong    = { pat = 'E:D:X', inp = 'e:d:x' },
+    pattern_too_deep   = { pat = 'E:F:C', inp = 'e:f:c' },
+    first_seg_wrong    = { pat = 'X:D:C', inp = 'x:d:c' },
+    other_branch_wrong = { pat = 'I:E',   inp = 'i:e' },
+    single_char_abbrev = { pat = 'E:a',   inp = 'e:a', label = 'Expenses:aZ' },
+    single_seg_match   = { pat = 'E',     inp = 'e' },
+    pattern_shorter    = { pat = 'E:D',   inp = 'e:d' },
   },
   {
     name = 'Cyrillic',
@@ -144,41 +142,39 @@ for _, v in ipairs({
       { label = 'доходы:зарплата', kind = 9 },
     },
     r = { row = 3, col = 14, offset = 10, input = 'р:п:п', start_char = 2, end_char = 13 },
-    c = {
-      three     = { pat = 'р:п:п', inp = 'р:п:п' },
-      empty     = { pat = 'х:й', inp = 'х:й' },
-      sec_mis   = { pat = 'р:з', inp = 'р:з' },
-      third_mis = { pat = 'р:п:х', inp = 'р:п:х' },
-      deep      = { pat = 'р:е:з', inp = 'р:е:з' },
-      first_mis = { pat = 'ф:п:п', inp = 'ф:п:п' },
-      sal_mis   = { pat = 'д:п', inp = 'д:п' },
-      ea        = { pat = 'р:а', inp = 'р:а', label = 'расходы:аз' },
-      ed        = { pat = 'р:п', inp = 'р:п' },
-      single    = { pat = 'р', inp = 'р' },
-    },
+    match_across_three = { pat = 'р:п:п', inp = 'р:п:п' },
+    no_match           = { pat = 'х:й',   inp = 'х:й' },
+    second_seg_wrong   = { pat = 'р:з',   inp = 'р:з' },
+    third_seg_wrong    = { pat = 'р:п:х', inp = 'р:п:х' },
+    pattern_too_deep   = { pat = 'р:е:з', inp = 'р:е:з' },
+    first_seg_wrong    = { pat = 'ф:п:п', inp = 'ф:п:п' },
+    other_branch_wrong = { pat = 'д:п',   inp = 'д:п' },
+    single_char_abbrev = { pat = 'р:а',   inp = 'р:а', label = 'расходы:аз' },
+    single_seg_match   = { pat = 'р',     inp = 'р' },
+    pattern_shorter    = { pat = 'р:п',   inp = 'р:п' },
   },
 }) do
   describe('filter_prefix_mode - ' .. v.name, function()
-    local c, items, r = v.c, v.items, v.r
+    local items, r = v.items, v.r
 
     it('returns matching items with textEdit', function()
-      local prefixes, _ = util.build_pattern(c.three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.three.inp, 3, r.col, r.offset)
+      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
       assert.equal(1, #result)
       assert.equal(items[1].label, result[1].label)
     end)
 
     it('includes textEdit in result', function()
-      local prefixes, _ = util.build_pattern(c.three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.three.inp, 3, r.col, r.offset)
+      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
       assert.not_nil(result[1].textEdit)
       assert.equal(r.input, result[1].textEdit.filterText)
       assert.equal(items[1].label, result[1].textEdit.newText)
     end)
 
     it('calculates textEdit range correctly', function()
-      local prefixes, _ = util.build_pattern(c.three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.three.inp, 3, r.col, r.offset)
+      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
       local range = result[1].textEdit.range
       assert.equal(2, range.start.line)
       assert.equal(r.start_char, range.start.character)
@@ -186,67 +182,67 @@ for _, v in ipairs({
       assert.equal(r.end_char, range['end'].character)
     end)
 
-    it('returns empty when no items match', function()
-      local prefixes, _ = util.build_pattern(c.empty.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.empty.inp, 1, 1, 1)
+    it('returns empty when no items match (X:Y vs items)', function()
+      local prefixes, _ = util.build_pattern(v.no_match.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.no_match.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('does not match second segment mismatch', function()
-      local prefixes, _ = util.build_pattern(c.sec_mis.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.sec_mis.inp, 1, 1, 1)
+    it('does not match second seg mismatch (E:Z vs Expenses:aZ)', function()
+      local prefixes, _ = util.build_pattern(v.second_seg_wrong.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.second_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('does not match third segment mismatch', function()
-      local prefixes, _ = util.build_pattern(c.third_mis.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.third_mis.inp, 1, 1, 1)
+    it('does not match third seg mismatch (E:D:X vs Drinks:Coffee)', function()
+      local prefixes, _ = util.build_pattern(v.third_seg_wrong.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.third_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('does not match when pattern is deeper than label', function()
-      local prefixes, _ = util.build_pattern(c.deep.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.deep.inp, 1, 1, 1)
+    it('does not match when pattern deeper than label (E:F:C vs Food)', function()
+      local prefixes, _ = util.build_pattern(v.pattern_too_deep.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.pattern_too_deep.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('does not match first segment mismatch', function()
-      local prefixes, _ = util.build_pattern(c.first_mis.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.first_mis.inp, 1, 1, 1)
+    it('does not match first seg mismatch (X:D:C vs Drinks:Coffee)', function()
+      local prefixes, _ = util.build_pattern(v.first_seg_wrong.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.first_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('does not match second segment in different branch', function()
-      local prefixes, _ = util.build_pattern(c.sal_mis.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.sal_mis.inp, 1, 1, 1)
+    it('does not match second seg in diff branch (I:E vs Salary)', function()
+      local prefixes, _ = util.build_pattern(v.other_branch_wrong.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.other_branch_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('matches single-letter abbreviation across segments', function()
-      local prefixes, _ = util.build_pattern(c.ea.pat)
-      local az_items = { { label = c.ea.label, kind = 9 } }
-      local result = util.filter_prefix_mode(az_items, prefixes, c.ea.inp, 1, 1, 1)
+    it('matches single-letter abbrev across segs (E:a vs Expenses:aZ)', function()
+      local prefixes, _ = util.build_pattern(v.single_char_abbrev.pat)
+      local az_items = { { label = v.single_char_abbrev.label, kind = 9 } }
+      local result = util.filter_prefix_mode(az_items, prefixes, v.single_char_abbrev.inp, 1, 1, 1)
       assert.equal(1, #result)
-      assert.equal(c.ea.label, result[1].label)
+      assert.equal(v.single_char_abbrev.label, result[1].label)
     end)
 
     it('returns empty table when items list is empty', function()
-      local prefixes, _ = util.build_pattern(c.ed.pat)
-      local result = util.filter_prefix_mode({}, prefixes, c.ed.inp, 1, 1, 1)
+      local prefixes, _ = util.build_pattern(v.pattern_shorter.pat)
+      local result = util.filter_prefix_mode({}, prefixes, v.pattern_shorter.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
-    it('matches multiple items for same pattern', function()
-      local prefixes, _ = util.build_pattern(c.single.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.single.inp, 1, 1, 1)
+    it('matches multiple items for single prefix (E vs Expenses:**)', function()
+      local prefixes, _ = util.build_pattern(v.single_seg_match.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.single_seg_match.inp, 1, 1, 1)
       assert.equal(2, #result)
       assert.equal(items[1].label, result[1].label)
       assert.equal(items[2].label, result[2].label)
     end)
 
-    it('matches when pattern is shorter than label segments', function()
-      local prefixes, _ = util.build_pattern(c.ed.pat)
-      local result = util.filter_prefix_mode(items, prefixes, c.ed.inp, 1, 1, 1)
+    it('matches when pattern shorter than label (E:D vs Drinks:Coffee)', function()
+      local prefixes, _ = util.build_pattern(v.pattern_shorter.pat)
+      local result = util.filter_prefix_mode(items, prefixes, v.pattern_shorter.inp, 1, 1, 1)
       assert.equal(1, #result)
       assert.equal(items[1].label, result[1].label)
     end)
@@ -261,6 +257,9 @@ for _, v in ipairs({
       { label = 'Expenses:Food:Groceries', kind = 9 },
       { label = 'Income:Salary', kind = 9 },
     },
+    two_match = 'exp',
+    one_match = 'inc',
+    case_sens = 'Exp',
   },
   {
     name = 'Cyrillic',
@@ -269,18 +268,21 @@ for _, v in ipairs({
       { label = 'расходы:еда:продукты', kind = 9 },
       { label = 'доходы:зарплата', kind = 9 },
     },
+    two_match = 'рас',
+    one_match = 'дох',
+    case_sens = 'Рас',
   },
 }) do
   describe('filter_simple_mode - ' .. v.name, function()
     local items = v.items
 
     it('returns items starting with the prefix', function()
-      local result = util.filter_simple_mode(items, v.name == 'Latin' and 'exp' or 'рас')
+      local result = util.filter_simple_mode(items, v.two_match)
       assert.equal(2, #result)
     end)
 
     it('does not return items that do not match', function()
-      local result = util.filter_simple_mode(items, v.name == 'Latin' and 'inc' or 'дох')
+      local result = util.filter_simple_mode(items, v.one_match)
       assert.equal(1, #result)
       assert.equal(items[3].label, result[1].label)
     end)
@@ -296,12 +298,12 @@ for _, v in ipairs({
     end)
 
     it('is case-sensitive (input is expected pre-lowered)', function()
-      local result = util.filter_simple_mode(items, v.name == 'Latin' and 'Exp' or 'Рас')
+      local result = util.filter_simple_mode(items, v.case_sens)
       assert.equal(0, #result)
     end)
 
     it('preserves item structure', function()
-      local result = util.filter_simple_mode(items, v.name == 'Latin' and 'exp' or 'рас')
+      local result = util.filter_simple_mode(items, v.two_match)
       assert.equal(9, result[1].kind)
       assert.equal(items[1].label, result[1].label)
     end)
@@ -318,7 +320,7 @@ for _, v in ipairs({
     end)
 
     it('returns empty table for empty items list', function()
-      local result = util.filter_simple_mode({}, v.name == 'Latin' and 'exp' or 'рас')
+      local result = util.filter_simple_mode({}, v.two_match)
       assert.same({}, result)
     end)
   end)
