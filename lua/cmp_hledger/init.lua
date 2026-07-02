@@ -19,26 +19,18 @@ source.get_trigger_characters = function()
     return {}
   end
 
-  local triggers = { 'E', 'I', 'A', 'L' }
+  local triggers = {}
 
-  local buf = vim.api.nvim_get_current_buf()
-  if buf and vim.api.nvim_buf_is_valid(buf) then
-    local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-    local seen = {}
-    for _, line in ipairs(lines) do
-      local name = line:match("^account%s+([^%s;]+)%s*;%s*type:")
-      if name then
-        local segment = name:match("^([^:]+)")
-        if segment then
-          local char = segment:sub(1, 1)
-          if not seen[char] then
-            seen[char] = true
-            table.insert(triggers, char)
-          end
-        end
-      end
-    end
-  end
+  for i = 48, 57 do table.insert(triggers, string.char(i)) end
+  for i = 65, 90 do table.insert(triggers, string.char(i)) end
+  for i = 97, 122 do table.insert(triggers, string.char(i)) end
+
+  for cp = 0x0410, 0x042F do table.insert(triggers, vim.fn.nr2char(cp)) end
+  table.insert(triggers, vim.fn.nr2char(0x0401))
+  for cp = 0x0430, 0x044F do table.insert(triggers, vim.fn.nr2char(cp)) end
+  table.insert(triggers, vim.fn.nr2char(0x0451))
+
+  table.insert(triggers, ':')
 
   return triggers
 end
