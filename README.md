@@ -34,14 +34,6 @@ require('cmp').setup {
 
 Plugin will choose to work with `ledger` if it won't find `hledger` binary in `PATH`.
 
-## Testing
-
-Tests use [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) test harness.
-
-```bash
-nvim --headless -c "lua require('plenary.test_harness').test_file('tests/test_util.lua')" -c "qa"
-```
-
 ## License
 
 Source code available under [GNU GENERAL PUBLIC LICENSE](https://www.gnu.org/licenses).
