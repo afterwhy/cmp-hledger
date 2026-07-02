@@ -78,41 +78,6 @@ describe('startswith', function()
   end
 end)
 
-describe('build_pattern', function()
-  local scenarios = {
-    { desc = 'returns single-element table for single prefix',
-      latin = { 'exp', { 'exp' }, false },
-      cyrillic = { 'рас', { 'рас' }, false } },
-    { desc = 'returns lowered table for colon-separated input',
-      latin = { 'E:D:C', { 'e', 'd', 'c' }, true },
-      cyrillic = { 'р:п:п', { 'р', 'п', 'п' }, true } },
-    { desc = 'lowercases each segment',
-      latin = { 'ExP:Te', { 'exp', 'te' } },
-      cyrillic = { 'рас:про', { 'рас', 'про' } } },
-    { desc = 'sets prefix_mode to false for single segment after colon removal',
-      latin = { 'E:', nil, false },
-      cyrillic = { 'р:', nil, false } },
-    { desc = 'handles double colons by skipping empty segments',
-      latin = { 'a::b', { 'a', 'b' }, true },
-      cyrillic = { 'а::б', { 'а', 'б' }, true } },
-    { desc = 'returns empty table for only colons',
-      latin = { ':::', {}, false },
-      cyrillic = { ':::', {}, false } },
-  }
-  for _, s in ipairs(scenarios) do
-    for _, lang in ipairs({ 'latin', 'cyrillic' }) do
-      it(s.desc .. ' - ' .. lang, function()
-        local prefixes, mode = util.build_pattern(s[lang][1])
-        if s[lang][2] ~= nil then
-          assert.same(s[lang][2], prefixes)
-        end
-        if s[lang][3] ~= nil then
-          assert.are.equal(s[lang][3], mode)
-        end
-      end)
-    end
-  end
-end)
 
 for _, v in ipairs({
   {
@@ -158,14 +123,14 @@ for _, v in ipairs({
     local items, r = v.items, v.r
 
     it('returns matching items with textEdit', function()
-      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local prefixes = util.split(v.match_across_three.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       assert.equal(1, #result)
       assert.equal(items[1].label, result[1].label)
     end)
 
     it('includes textEdit in result', function()
-      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local prefixes = util.split(v.match_across_three.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       assert.not_nil(result[1].textEdit)
       assert.equal(r.input, result[1].textEdit.filterText)
@@ -173,7 +138,7 @@ for _, v in ipairs({
     end)
 
     it('calculates textEdit range correctly', function()
-      local prefixes, _ = util.build_pattern(v.match_across_three.pat)
+      local prefixes = util.split(v.match_across_three.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       local range = result[1].textEdit.range
       assert.equal(2, range.start.line)
@@ -183,44 +148,44 @@ for _, v in ipairs({
     end)
 
     it('returns empty when no items match (X:Y vs items)', function()
-      local prefixes, _ = util.build_pattern(v.no_match.pat)
+      local prefixes = util.split(v.no_match.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.no_match.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('does not match second seg mismatch (E:Z vs Expenses:aZ)', function()
-      local prefixes, _ = util.build_pattern(v.second_seg_wrong.pat)
+      local prefixes = util.split(v.second_seg_wrong.inp, ':')
       local test_items = v.second_seg_wrong.items or items
       local result = util.filter_prefix_mode(test_items, prefixes, v.second_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('does not match third seg mismatch (E:D:X vs Drinks:Coffee)', function()
-      local prefixes, _ = util.build_pattern(v.third_seg_wrong.pat)
+      local prefixes = util.split(v.third_seg_wrong.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.third_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('does not match when pattern deeper than label (E:F:C vs Food)', function()
-      local prefixes, _ = util.build_pattern(v.pattern_too_deep.pat)
+      local prefixes = util.split(v.pattern_too_deep.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.pattern_too_deep.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('does not match first seg mismatch (X:D:C vs Drinks:Coffee)', function()
-      local prefixes, _ = util.build_pattern(v.first_seg_wrong.pat)
+      local prefixes = util.split(v.first_seg_wrong.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.first_seg_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('does not match second seg in diff branch (I:E vs Salary)', function()
-      local prefixes, _ = util.build_pattern(v.other_branch_wrong.pat)
+      local prefixes = util.split(v.other_branch_wrong.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.other_branch_wrong.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('matches single-letter abbrev across segs (E:a vs Expenses:aZ)', function()
-      local prefixes, _ = util.build_pattern(v.single_char_abbrev.pat)
+      local prefixes = util.split(v.single_char_abbrev.inp, ':')
       local az_items = { { label = v.single_char_abbrev.label, kind = 9 } }
       local result = util.filter_prefix_mode(az_items, prefixes, v.single_char_abbrev.inp, 1, 1, 1)
       assert.equal(1, #result)
@@ -228,13 +193,13 @@ for _, v in ipairs({
     end)
 
     it('returns empty table when items list is empty', function()
-      local prefixes, _ = util.build_pattern(v.pattern_shorter.pat)
+      local prefixes = util.split(v.pattern_shorter.inp, ':')
       local result = util.filter_prefix_mode({}, prefixes, v.pattern_shorter.inp, 1, 1, 1)
       assert.same({}, result)
     end)
 
     it('matches multiple items for single prefix (E vs Expenses:**)', function()
-      local prefixes, _ = util.build_pattern(v.single_seg_match.pat)
+      local prefixes = util.split(v.single_seg_match.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.single_seg_match.inp, 1, 1, 1)
       assert.equal(2, #result)
       assert.equal(items[1].label, result[1].label)
@@ -242,7 +207,7 @@ for _, v in ipairs({
     end)
 
     it('matches when pattern shorter than label (E:D vs Drinks:Coffee)', function()
-      local prefixes, _ = util.build_pattern(v.pattern_shorter.pat)
+      local prefixes = util.split(v.pattern_shorter.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.pattern_shorter.inp, 1, 1, 1)
       assert.equal(1, #result)
       assert.equal(items[1].label, result[1].label)

@@ -5,8 +5,6 @@ local util = require('cmp_hledger.util')
 source.new = function()
   local self = setmetatable({}, { __index = source })
   self.items = nil
-  self._cached_path = nil
-  self._cached_mtime = nil
   return self
 end
 
@@ -61,8 +59,8 @@ source.complete = function(self, request, callback)
     vim.b.hledger_bin = "ledger"
   else
     vim.api.nvim_echo({
-      { 'cmp_hledger',                         'ErrorMsg' },
-      { ' ' .. 'Can\'t find hledger or ledger' },
+      { 'cmp_hledger', 'ErrorMsg' },
+      { ' ' .. "Can't find hledger or ledger" },
     }, true, {})
     callback()
     return

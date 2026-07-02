@@ -16,14 +16,6 @@ function M.startswith(str, prefix)
   return str:sub(1, #prefix) == prefix
 end
 
-function M.build_pattern(input)
-  local prefixes = {}
-  for _, p in ipairs(M.split(input, ':')) do
-    prefixes[#prefixes + 1] = p:lower()
-  end
-  return prefixes, #prefixes > 1
-end
-
 function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, leading)
   local result = {}
   for _, item in ipairs(items) do
