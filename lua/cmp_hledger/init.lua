@@ -11,7 +11,7 @@ source.new = function()
 end
 
 source.get_keyword_pattern = function()
-  return '[[:lower:][:upper:]0-9_.:-]*'
+  return '[[:lower:][:upper:]0-9_.-]*'
 end
 
 source.get_trigger_characters = function()
@@ -29,8 +29,6 @@ source.get_trigger_characters = function()
   table.insert(triggers, vim.fn.nr2char(0x0401))
   for cp = 0x0430, 0x044F do table.insert(triggers, vim.fn.nr2char(cp)) end
   table.insert(triggers, vim.fn.nr2char(0x0451))
-
-  table.insert(triggers, ':')
 
   return triggers
 end
@@ -77,14 +75,16 @@ source.complete = function(self, request, callback)
     self._cached_mtime = mtime
   end
 
-  local input = util.ltrim(request.context.cursor_before_line):lower()
+  local cursor_before_line = request.context.cursor_before_line
+  local input = util.ltrim(cursor_before_line):lower()
+  local leading = #cursor_before_line - #util.ltrim(cursor_before_line)
   local prefixes = util.split(input, ":")
   local is_abbrev = #prefixes > 1
 
   local items = {}
   if is_abbrev then
     items = util.filter_prefix_mode(self.items, prefixes, input,
-      request.context.cursor.row, request.context.cursor.col, request.offset)
+      request.context.cursor.row, request.context.cursor.col, leading)
   else
     items = util.filter_simple_mode(self.items, input)
   end

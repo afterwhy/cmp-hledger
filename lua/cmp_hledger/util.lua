@@ -24,7 +24,7 @@ function M.build_pattern(input)
   return prefixes, #prefixes > 1
 end
 
-function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, offset)
+function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, leading)
   local result = {}
   for _, item in ipairs(items) do
     local label_segments = M.split(item.label:lower(), ':')
@@ -56,7 +56,7 @@ function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, of
           range = {
             start = {
               line = cursor_row - 1,
-              character = offset - #input,
+              character = leading,
             },
             ['end'] = {
               line = cursor_row - 1,

@@ -122,7 +122,7 @@ for _, v in ipairs({
       { label = 'Expenses:Food:Groceries', kind = 9 },
       { label = 'Income:Salary', kind = 9 },
     },
-    r = { row = 3, col = 10, offset = 6, input = 'e:d:c', start_char = 1, end_char = 9 },
+    r = { row = 3, col = 10, leading = 1, input = 'e:d:c', start_char = 1, end_char = 9 },
     match_across_three = { pat = 'E:D:C', inp = 'e:d:c' },
     no_match           = { pat = 'X:Y',   inp = 'x:y' },
     second_seg_wrong   = { pat = 'E:Z',   inp = 'e:z',   items = { { label = 'Expenses:aZ', kind = 9 } } },
@@ -141,7 +141,7 @@ for _, v in ipairs({
       { label = 'расходы:еда:бакалея', kind = 9 },
       { label = 'доходы:зарплата', kind = 9 },
     },
-    r = { row = 3, col = 14, offset = 10, input = 'р:п:п', start_char = 2, end_char = 13 },
+    r = { row = 3, col = 14, leading = 2, input = 'р:п:п', start_char = 2, end_char = 13 },
     match_across_three = { pat = 'р:п:п', inp = 'р:п:п' },
     no_match           = { pat = 'х:й',   inp = 'х:й' },
     second_seg_wrong   = { pat = 'а:б',   inp = 'а:б',   items = { { label = 'активы:сбережения:вклад:отп', kind = 9 } } },
@@ -159,14 +159,14 @@ for _, v in ipairs({
 
     it('returns matching items with textEdit', function()
       local prefixes, _ = util.build_pattern(v.match_across_three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       assert.equal(1, #result)
       assert.equal(items[1].label, result[1].label)
     end)
 
     it('includes textEdit in result', function()
       local prefixes, _ = util.build_pattern(v.match_across_three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       assert.not_nil(result[1].textEdit)
       assert.equal(r.input, result[1].textEdit.filterText)
       assert.equal(items[1].label, result[1].textEdit.newText)
@@ -174,7 +174,7 @@ for _, v in ipairs({
 
     it('calculates textEdit range correctly', function()
       local prefixes, _ = util.build_pattern(v.match_across_three.pat)
-      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.offset)
+      local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       local range = result[1].textEdit.range
       assert.equal(2, range.start.line)
       assert.equal(r.start_char, range.start.character)
