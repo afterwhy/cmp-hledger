@@ -19,14 +19,14 @@ source.get_trigger_characters = function()
 
   local triggers = {}
 
-  for i = 48, 57 do table.insert(triggers, string.char(i)) end
-  for i = 65, 90 do table.insert(triggers, string.char(i)) end
-  for i = 97, 122 do table.insert(triggers, string.char(i)) end
+  for cp = string.byte('0'), string.byte('9') do table.insert(triggers, string.char(cp)) end
+  for cp = string.byte('A'), string.byte('Z') do table.insert(triggers, string.char(cp)) end
+  for cp = string.byte('a'), string.byte('z') do table.insert(triggers, string.char(cp)) end
 
-  for cp = 0x0410, 0x042F do table.insert(triggers, vim.fn.nr2char(cp)) end
-  table.insert(triggers, vim.fn.nr2char(0x0401))
-  for cp = 0x0430, 0x044F do table.insert(triggers, vim.fn.nr2char(cp)) end
-  table.insert(triggers, vim.fn.nr2char(0x0451))
+  for cp = vim.fn.char2nr('А'), vim.fn.char2nr('Я') do table.insert(triggers, vim.fn.nr2char(cp)) end
+  table.insert(triggers, vim.fn.nr2char(vim.fn.char2nr('Ё')))
+  for cp = vim.fn.char2nr('а'), vim.fn.char2nr('я') do table.insert(triggers, vim.fn.nr2char(cp)) end
+  table.insert(triggers, vim.fn.nr2char(vim.fn.char2nr('ё')))
 
   return triggers
 end
