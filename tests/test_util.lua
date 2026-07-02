@@ -133,7 +133,6 @@ for _, v in ipairs({
       local prefixes = util.split(v.match_across_three.inp, ':')
       local result = util.filter_prefix_mode(items, prefixes, v.match_across_three.inp, 3, r.col, r.leading)
       assert.not_nil(result[1].textEdit)
-      assert.equal(r.input, result[1].textEdit.filterText)
       assert.equal(items[1].label, result[1].textEdit.newText)
     end)
 

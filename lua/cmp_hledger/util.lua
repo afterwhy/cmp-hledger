@@ -42,7 +42,6 @@ function M.filter_prefix_mode(items, prefixes, input, cursor_row, cursor_col, le
         label = item.label,
         kind = item.kind,
         textEdit = {
-          filterText = input,
           newText = item.label,
           range = {
             start = {
