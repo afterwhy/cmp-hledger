@@ -8,18 +8,8 @@ source.new = function()
   return self
 end
 
-source.get_trigger_characters = function()
-  return {
-    'Ex',
-    'In',
-    'As',
-    'Li',
-    'Eq',
-    'E:',
-    'I:',
-    'A:',
-    'L:',
-  }
+source.get_keyword_pattern = function()
+  return '[[:lower:][:upper:]0-9_.-]*'
 end
 
 local get_items = function(account_path)
@@ -63,51 +53,18 @@ source.complete = function(self, request, callback)
     self._cached_mtime = mtime
   end
 
-  local prefix_mode = false
-  local input = util.ltrim(request.context.cursor_before_line):lower()
+  local cursor_before_line = request.context.cursor_before_line
+  local input = util.ltrim(cursor_before_line):lower()
+  local leading = #cursor_before_line - #util.ltrim(cursor_before_line)
   local prefixes = util.split(input, ":")
-  local pattern = ''
-
-  for i, prefix in ipairs(prefixes) do
-    if i == 1 then
-      pattern = string.format('%s[%%w%%-]*', prefix:lower())
-    else
-      pattern = string.format('%s:%s[%%w%%-]*', pattern, prefix:lower())
-    end
-  end
-  if #prefixes > 1 and pattern ~= '' then
-    prefix_mode = true
-  end
+  local is_abbrev = #prefixes > 1
 
   local items = {}
-  for _, item in ipairs(self.items) do
-    if prefix_mode then
-      if string.match(item.label:lower(), pattern) then
-        table.insert(items, {
-          word = item.label,
-          label = item.label,
-          kind = item.kind,
-          textEdit = {
-            filterText = input,
-            newText = item.label,
-            range = {
-              start = {
-                line = request.context.cursor.row - 1,
-                character = request.offset - string.len(input),
-              },
-              ['end'] = {
-                line = request.context.cursor.row - 1,
-                character = request.context.cursor.col - 1,
-              },
-            },
-          },
-        })
-      end
-    else
-      if vim.startswith(item.label:lower(), input) then
-        table.insert(items, item)
-      end
-    end
+  if is_abbrev then
+    items = util.filter_prefix_mode(self.items, prefixes, input,
+      request.context.cursor.row, request.context.cursor.col, leading)
+  else
+    items = util.filter_simple_mode(self.items, input)
   end
   callback(items)
 end
